@@ -14,7 +14,8 @@ import (
 
 func init() {
 	viper.AddConfigPath(".")
-	viper.SetConfigName("conf")
+	viper.SetConfigName("databaseConfig")
+	viper.SetConfigType("json")
 	err := viper.ReadInConfig()
 	if err != nil {
 		fmt.Println("Failed to initialise package, config file missing")
