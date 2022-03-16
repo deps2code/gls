@@ -18,10 +18,6 @@ type GLSRedisContext struct {
 
 var RedisContext *GLSRedisContext
 
-func init() {
-	RedisContext = new(GLSRedisContext)
-}
-
 type RedisStorageOps interface {
 	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) *redis.StatusCmd
 	Get(ctx context.Context, key string) *redis.StringCmd
@@ -43,11 +39,13 @@ func NewRedisClient() (*redis.Client, error) {
 }
 
 func InitRedisDB() (RedisStorageOps, error) {
+	RedisContext = new(GLSRedisContext)
 	redisClient, err := NewRedisClient()
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
 	}
+	fmt.Println("Connected to redis successfully")
 	RedisContext.RedisDB = redisClient
 	RedisContext.redisClient = redisClient
 

@@ -13,7 +13,7 @@ import (
 )
 
 func init() {
-	viper.AddConfigPath("./")
+	viper.AddConfigPath(".")
 	viper.SetConfigName("conf")
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -24,7 +24,7 @@ func init() {
 }
 
 func ParseCSV() {
-	f, err := os.Open("data.csv")
+	f, err := os.Open("./data.csv")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -37,6 +37,7 @@ func ParseCSV() {
 
 	csvReader := csv.NewReader(f)
 	for {
+
 		record, err := csvReader.Read()
 		if err == io.EOF {
 			break
@@ -93,8 +94,6 @@ func ParseCSV() {
 		}
 
 		IPDataList = append(IPDataList, ipData)
-
-		fmt.Printf("%+v\n", IPDataList)
 
 	}
 
