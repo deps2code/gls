@@ -7,6 +7,8 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"sync"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -23,11 +25,13 @@ func init() {
 }
 
 type GLSCSVParser struct {
-	FilePath  string // file path to read the csv
-	Analytics ParserAnalytics
+	NoOfThreads int64
+	FilePath    string // file path to read the csv
+	Analytics   ParserAnalytics
 }
 
 type ParserAnalytics struct {
+	TimeTaken       time.Duration
 	TotalRecords    int64
 	RecordsParsed   int64
 	RecordsRejected int64
@@ -48,9 +52,17 @@ func getInitializedErrorCountMap() map[error]int64 {
 	return errorCountMap
 }
 
-func NewParser(filePath string) *GLSCSVParser {
+func min(a, b int64) int64 {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func NewParser(filePath string, noOfThreads int64) *GLSCSVParser {
 	return &GLSCSVParser{
-		FilePath: filePath,
+		NoOfThreads: noOfThreads,
+		FilePath:    filePath,
 		Analytics: ParserAnalytics{
 			ErrorCountMap: getInitializedErrorCountMap(),
 		},
@@ -58,6 +70,7 @@ func NewParser(filePath string) *GLSCSVParser {
 }
 
 func (parser *GLSCSVParser) ParseCSV() error {
+	start := time.Now()
 	f, err := os.Open(parser.FilePath)
 	if err != nil {
 		return err
@@ -123,12 +136,24 @@ func (parser *GLSCSVParser) ParseCSV() error {
 			parser.Analytics.ErrorCountMap[ErrCsvInvalidLat] += 1
 			continue
 		}
+		if parsedLat > 90 || parsedLat < -90 {
+			fmt.Println("Error occurred: Invalid Lat")
+			recordsRejected += 1
+			parser.Analytics.ErrorCountMap[ErrCsvInvalidLat] += 1
+			continue
+		}
 
 		parsedLng, err := strconv.ParseFloat(record[5], 64)
 		if err != nil {
 			fmt.Println("Error occurred: Invalid Lng")
 			recordsRejected += 1
 			parser.Analytics.ErrorCountMap[ErrCsvInvalidLng] += 1
+			continue
+		}
+		if parsedLng > 180 || parsedLng < -180 {
+			fmt.Println("Error occurred: Invalid Lat")
+			recordsRejected += 1
+			parser.Analytics.ErrorCountMap[ErrCsvInvalidLat] += 1
 			continue
 		}
 
@@ -154,21 +179,48 @@ func (parser *GLSCSVParser) ParseCSV() error {
 
 	}
 
-	for _, record := range IPDataList {
-		err := record.Save()
-		if err != nil {
-			fmt.Println("Error occurred: " + err.Error())
-			recordsRejected = recordsRejected + 1
-			parser.Analytics.ErrorCountMap[ErrCSVDatabaseSave] += 1
-			continue
+	noOfThreads := min(parser.NoOfThreads, int64(len(IPDataList)))
+	chunksLength := int64(len(IPDataList)) / noOfThreads
+	i := int64(0)
+
+	ch := make(chan int64, noOfThreads+1)
+	var wg sync.WaitGroup
+
+	for {
+		if i >= int64(len(IPDataList)) {
+			break
 		}
-		recordsParsed += 1
+		wg.Add(1)
+		go func(i int64) {
+			defer wg.Done()
+			recordsRejected := int64(0)
+			for _, record := range IPDataList[i:min(i+chunksLength, int64(len(IPDataList)))] {
+				err := record.Save()
+				if err != nil {
+					recordsRejected = recordsRejected + 1
+					continue
+				}
+			}
+			ch <- recordsRejected
+		}(i)
+		i += chunksLength
 	}
+
+	wg.Wait()
+	close(ch)
+
+	recordsRejectedRedisSave := int64(0)
+	for i := range ch {
+		recordsRejectedRedisSave += i
+	}
+
+	parser.Analytics.ErrorCountMap[ErrCSVDatabaseSave] += recordsRejectedRedisSave
 
 	// subtracting 1 for initial header row
 	parser.Analytics.TotalRecords = totalRecords - 1
 	parser.Analytics.RecordsParsed = recordsParsed
-	parser.Analytics.RecordsRejected = recordsRejected
+	parser.Analytics.RecordsRejected = recordsRejected + recordsRejectedRedisSave
+	parser.Analytics.TimeTaken = time.Since(start)
 
 	return nil
 }

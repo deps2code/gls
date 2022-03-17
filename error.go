@@ -21,7 +21,7 @@ var (
 	// ErrCsvInvalidLat is returned when an invalid lattitude is encountered
 	ErrCsvInvalidLat = errors.New("invalid lattitude")
 	// ErrCsvInvalidLng is returned when an invalid longitude is encountered
-	ErrCsvInvalidLng = errors.New("duplicate longitude")
+	ErrCsvInvalidLng = errors.New("invalid longitude")
 	// ErrCsvInsufficientIPData is returned when a ip address does not have any data
 	ErrCsvInsufficientIPData = errors.New("insufficient ip data to save")
 	// ErrCSVDatabaseSave is returned when the database save operation fails
