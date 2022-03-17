@@ -4,7 +4,6 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
-	"log"
 	"net"
 	"os"
 	"strconv"
@@ -58,10 +57,10 @@ func NewParser(filePath string) *GLSCSVParser {
 	}
 }
 
-func (parser *GLSCSVParser) ParseCSV() {
+func (parser *GLSCSVParser) ParseCSV() error {
 	f, err := os.Open(parser.FilePath)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	defer f.Close()
@@ -171,4 +170,5 @@ func (parser *GLSCSVParser) ParseCSV() {
 	parser.Analytics.RecordsParsed = recordsParsed
 	parser.Analytics.RecordsRejected = recordsRejected
 
+	return nil
 }
