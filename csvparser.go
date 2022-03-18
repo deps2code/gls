@@ -98,14 +98,12 @@ func (parser *GLSCSVParser) ParseCSV() error {
 		}
 
 		if err != nil {
-			fmt.Println("Error occurred: not a valid csv row")
 			recordsRejected += 1
 			parser.Analytics.ErrorCountMap[ErrCsvInvalidRow] += 1
 			continue
 		}
 
 		if len(record) < 6 {
-			fmt.Println("Error occurred: not a valid csv row")
 			recordsRejected += 1
 			parser.Analytics.ErrorCountMap[ErrCsvInvalidRow] += 1
 			continue
@@ -114,14 +112,12 @@ func (parser *GLSCSVParser) ParseCSV() error {
 		//parsing ip address
 		parsedIP := net.ParseIP(record[0])
 		if parsedIP == nil {
-			fmt.Println("Error occurred: Invalid IP address")
 			recordsRejected += 1
 			parser.Analytics.ErrorCountMap[ErrCsvIPParse] += 1
 			continue
 		}
 
 		if _, ok := ipDuplicateMap[record[0]]; ok {
-			fmt.Println("Error occurred: Duplicate IP Address")
 			recordsRejected += 1
 			parser.Analytics.ErrorCountMap[ErrCsvDuplicateIP] += 1
 			continue
@@ -131,13 +127,11 @@ func (parser *GLSCSVParser) ParseCSV() error {
 
 		parsedLat, err := strconv.ParseFloat(record[4], 64)
 		if err != nil {
-			fmt.Println("Error occurred: Invalid Lat")
 			recordsRejected += 1
 			parser.Analytics.ErrorCountMap[ErrCsvInvalidLat] += 1
 			continue
 		}
 		if parsedLat > 90 || parsedLat < -90 {
-			fmt.Println("Error occurred: Invalid Lat")
 			recordsRejected += 1
 			parser.Analytics.ErrorCountMap[ErrCsvInvalidLat] += 1
 			continue
@@ -145,15 +139,13 @@ func (parser *GLSCSVParser) ParseCSV() error {
 
 		parsedLng, err := strconv.ParseFloat(record[5], 64)
 		if err != nil {
-			fmt.Println("Error occurred: Invalid Lng")
 			recordsRejected += 1
 			parser.Analytics.ErrorCountMap[ErrCsvInvalidLng] += 1
 			continue
 		}
 		if parsedLng > 180 || parsedLng < -180 {
-			fmt.Println("Error occurred: Invalid Lat")
 			recordsRejected += 1
-			parser.Analytics.ErrorCountMap[ErrCsvInvalidLat] += 1
+			parser.Analytics.ErrorCountMap[ErrCsvInvalidLng] += 1
 			continue
 		}
 
@@ -169,7 +161,6 @@ func (parser *GLSCSVParser) ParseCSV() error {
 
 		err = ipData.Validate()
 		if err != nil {
-			fmt.Println("Error occurred: " + err.Error())
 			recordsRejected += 1
 			parser.Analytics.ErrorCountMap[ErrCsvInsufficientIPData] += 1
 			continue

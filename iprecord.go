@@ -3,7 +3,6 @@ package gls
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net"
 )
 
@@ -28,12 +27,10 @@ func (ip *IPRecord) Validate() error {
 func (ip *IPRecord) Save() error {
 	ipDataRedis, err := json.Marshal(ip)
 	if err != nil {
-		fmt.Println(err)
 		return ErrInvalidIPData
 	}
 	_, err = RedisContext.RedisDB.Set(context.Background(), string(ip.IPAddress), string(ipDataRedis), 0).Result()
 	if err != nil {
-		fmt.Println(err)
 		return ErrCSVDatabaseSave
 	}
 	return nil

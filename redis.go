@@ -42,7 +42,6 @@ func InitRedisDB() (RedisStorageOps, error) {
 	RedisContext = new(GLSRedisContext)
 	redisClient, err := NewRedisClient()
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 	fmt.Println("Connected to redis successfully")
