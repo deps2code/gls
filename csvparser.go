@@ -21,7 +21,10 @@ func init() {
 	if err != nil {
 		fmt.Println("Failed to initialise package, config file missing")
 	}
-	InitRedisDB()
+	err = InitRedisDB()
+	if err != nil {
+		fmt.Println("Failed to initialize redis, err:", err)
+	}
 }
 
 type GLSCSVParser struct {
@@ -109,7 +112,7 @@ func (parser *GLSCSVParser) ParseCSV() error {
 			continue
 		}
 
-		//parsing ip address
+		// parsing ip address
 		parsedIP := net.ParseIP(record[0])
 		if parsedIP == nil {
 			recordsRejected += 1
@@ -117,6 +120,7 @@ func (parser *GLSCSVParser) ParseCSV() error {
 			continue
 		}
 
+		// checking for duplicate IPs in map
 		if _, ok := ipDuplicateMap[record[0]]; ok {
 			recordsRejected += 1
 			parser.Analytics.ErrorCountMap[ErrCsvDuplicateIP] += 1
@@ -207,10 +211,10 @@ func (parser *GLSCSVParser) ParseCSV() error {
 
 	parser.Analytics.ErrorCountMap[ErrCSVDatabaseSave] += recordsRejectedRedisSave
 
-	// subtracting 1 for initial header row
+	// subtracting 1 from total records for initial header row
 	parser.Analytics.TotalRecords = totalRecords - 1
-	parser.Analytics.RecordsParsed = recordsParsed
 	parser.Analytics.RecordsRejected = recordsRejected + recordsRejectedRedisSave
+	parser.Analytics.RecordsParsed = parser.Analytics.TotalRecords - parser.Analytics.RecordsRejected
 	parser.Analytics.TimeTaken = time.Since(start)
 
 	return nil

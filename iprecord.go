@@ -24,6 +24,7 @@ func (ip *IPRecord) Validate() error {
 	return nil
 }
 
+// Save: Save IP data to redis
 func (ip *IPRecord) Save() error {
 	ipDataRedis, err := json.Marshal(ip)
 	if err != nil {
@@ -36,6 +37,7 @@ func (ip *IPRecord) Save() error {
 	return nil
 }
 
+// GetData: Get IP data from database
 func GetData(key string) (IPRecord, error) {
 	var ipGeoData IPRecord
 	parsedIP := net.ParseIP(key)

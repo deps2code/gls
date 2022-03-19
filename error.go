@@ -11,7 +11,7 @@ var (
 	// ErrInvalidIPData is returned when the ip address data is not valid
 	ErrInvalidIPData = errors.New("ip address data is invalid")
 
-	// CSV parser errors
+	// CSV PARSER ERRORS
 	// ErrCsvInvalidRow is returned when the csv row has less comma seperated values than expected or error occurred in parsing the row
 	ErrCsvInvalidRow = errors.New("not a valid csv row")
 	// ErrCsvIPParse is returned when the ip address is not valid

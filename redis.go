@@ -25,9 +25,9 @@ type RedisStorageOps interface {
 
 func NewRedisClient() (*redis.Client, error) {
 	opt := &redis.Options{
-		DialTimeout:  time.Duration(viper.GetInt("database.redos.dialTimeout")) * time.Second,
-		ReadTimeout:  time.Duration(viper.GetInt("database.redos.readTimeout")) * time.Second,
-		WriteTimeout: time.Duration(viper.GetInt("database.redos.writeTimeout")) * time.Second,
+		DialTimeout:  time.Duration(viper.GetInt("database.redis.dialTimeout")) * time.Second,
+		ReadTimeout:  time.Duration(viper.GetInt("database.redis.readTimeout")) * time.Second,
+		WriteTimeout: time.Duration(viper.GetInt("database.redis.writeTimeout")) * time.Second,
 		Addr:         viper.GetString("database.redis.address"),
 		Password:     viper.GetString("database.redis.password"),
 		DB:           0,
@@ -38,15 +38,14 @@ func NewRedisClient() (*redis.Client, error) {
 	return client, err
 }
 
-func InitRedisDB() (RedisStorageOps, error) {
+func InitRedisDB() error {
 	RedisContext = new(GLSRedisContext)
 	redisClient, err := NewRedisClient()
 	if err != nil {
-		return nil, err
+		return err
 	}
 	fmt.Println("Connected to redis successfully")
 	RedisContext.RedisDB = redisClient
 	RedisContext.redisClient = redisClient
-
-	return RedisContext.RedisDB, nil
+	return nil
 }
