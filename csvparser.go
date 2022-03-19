@@ -82,7 +82,7 @@ func (parser *GLSCSVParser) ParseCSV() error {
 	defer f.Close()
 
 	var IPDataList []IPRecord
-	var totalRecords, recordsParsed, recordsRejected int64
+	var totalRecords, recordsRejected int64
 
 	ipDuplicateMap := make(map[string]bool)
 
