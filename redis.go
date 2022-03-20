@@ -30,7 +30,7 @@ func NewRedisClient() (*redis.Client, error) {
 		WriteTimeout: time.Duration(viper.GetInt("database.redis.writeTimeout")) * time.Second,
 		Addr:         viper.GetString("database.redis.address"),
 		Password:     viper.GetString("database.redis.password"),
-		DB:           0,
+		DB:           viper.GetInt("database.redis.databaseName"),
 	}
 
 	client := redis.NewClient(opt)
